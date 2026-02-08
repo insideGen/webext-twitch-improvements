@@ -1,4 +1,12 @@
-const browserApi = typeof browser !== 'undefined' ? browser : chrome;
+declare const browser: typeof chrome;
+
+interface ExtensionMessage
+{
+    context: 'window' | 'tabMuted' | 'popup';
+    action: 'get' | 'toggle' | 'open';
+}
+
+const browserApi: typeof chrome = typeof browser !== 'undefined' ? browser : chrome;
 
 browserApi.runtime.onInstalled.addListener(() =>
 {
@@ -6,7 +14,7 @@ browserApi.runtime.onInstalled.addListener(() =>
     browserApi.contextMenus.create({ id: 'reopenAsPopup', title: browserApi.i18n.getMessage('reopenAsPopup'), contexts: ['page'], documentUrlPatterns: ['*://*.twitch.tv/*'] });
 });
 
-browserApi.contextMenus.onClicked.addListener((info, tab) =>
+browserApi.contextMenus.onClicked.addListener((info: chrome.contextMenus.OnClickData, tab?: chrome.tabs.Tab) =>
 {
     try
     {
@@ -25,7 +33,7 @@ browserApi.contextMenus.onClicked.addListener((info, tab) =>
     }
 });
 
-browserApi.runtime.onMessage.addListener((message, sender, sendResponse) =>
+browserApi.runtime.onMessage.addListener((message: ExtensionMessage, sender: chrome.runtime.MessageSender, sendResponse: (response: unknown) => void) =>
 {
     try
     {
@@ -33,7 +41,7 @@ browserApi.runtime.onMessage.addListener((message, sender, sendResponse) =>
         {
             if (message.action === 'get')
             {
-                browserApi.windows.get(sender.tab.windowId, (win) =>
+                browserApi.windows.get(sender.tab!.windowId, (win) =>
                 {
                     sendResponse({ type: win.type });
                 });
@@ -44,13 +52,13 @@ browserApi.runtime.onMessage.addListener((message, sender, sendResponse) =>
         {
             if (message.action === 'get')
             {
-                sendResponse(sender.tab.mutedInfo.muted);
+                sendResponse(sender.tab!.mutedInfo!.muted);
                 return true;
             }
             else if (message.action === 'toggle')
             {
-                const newMuted = !sender.tab.mutedInfo.muted;
-                browserApi.tabs.update(sender.tab.id, { muted: newMuted }, () =>
+                const newMuted = !sender.tab!.mutedInfo!.muted;
+                browserApi.tabs.update(sender.tab!.id!, { muted: newMuted }, () =>
                 {
                     sendResponse(newMuted);
                 });
@@ -71,17 +79,5 @@ browserApi.runtime.onMessage.addListener((message, sender, sendResponse) =>
         console.error(exception);
     }
 });
-
-// browserApi.tabs.onUpdated.addListener((tabId, changeInfo, tab) =>
-// {
-//     try
-//     {
-//         console.log(`Tab updated: ${tab.url}, muted: ${changeInfo.mutedInfo.muted}`);
-//     }
-//     catch (exception)
-//     {
-//         console.error(exception);
-//     }
-// });
 
 console.log('Background script started');

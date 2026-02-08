@@ -8,5 +8,9 @@
         "build:chrome": "node build.js chrome",
         "build:firefox": "node build.js firefox",
         "watch": "node build.js watch"
+    },
+    "devDependencies": {
+        "@types/chrome": "^0.1.36",
+        "typescript": "^5.9.3"
     }
 }

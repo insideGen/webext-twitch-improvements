@@ -1,9 +1,10 @@
 // build.js - Zero-dependency build script for Chrome and Firefox
-// Usage: node build.js [chrome|firefox|all]
+// Usage: node build.js [chrome|firefox|all|watch]
 // Default: all
 
 const fs = require('fs');
 const path = require('path');
+const { execSync } = require('child_process');
 
 const ROOT = __dirname;
 const SRC = path.join(ROOT, 'src');
@@ -14,9 +15,14 @@ const TARGETS = {
     firefox: 'manifest.firefox.json'
 };
 
-const COPY_ENTRIES = [
+const TSC_OUT = path.join(BUILD, '.tsc');
+
+const ASSETS = [
     '_locales',
-    'icons',
+    'icons'
+];
+
+const COMPILED = [
     'background.js',
     'scripts'
 ];
@@ -47,6 +53,12 @@ function copyRecursive(src, dest)
     }
 }
 
+function compile()
+{
+    console.log('Compiling TypeScript...');
+    execSync('npx tsc', { cwd: ROOT, stdio: 'inherit' });
+}
+
 function buildTarget(target)
 {
     console.log(`Building ${target}...`);
@@ -54,9 +66,14 @@ function buildTarget(target)
     const outDir = path.join(BUILD, target);
     cleanDir(outDir);
 
-    for (const entry of COPY_ENTRIES)
+    for (const entry of ASSETS)
     {
         copyRecursive(path.join(SRC, entry), path.join(outDir, entry));
+    }
+
+    for (const entry of COMPILED)
+    {
+        copyRecursive(path.join(TSC_OUT, entry), path.join(outDir, entry));
     }
 
     const base = JSON.parse(fs.readFileSync(path.join(SRC, 'manifest.base.json'), 'utf-8'));
@@ -73,6 +90,7 @@ function buildTarget(target)
 
 function buildAll()
 {
+    compile();
     for (const target of Object.keys(TARGETS))
     {
         buildTarget(target);
@@ -110,6 +128,7 @@ switch (arg)
     default:
         if (TARGETS[arg])
         {
+            compile();
             buildTarget(arg);
         }
         else

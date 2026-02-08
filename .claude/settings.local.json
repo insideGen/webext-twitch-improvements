@@ -21,7 +21,8 @@
       "WebFetch(domain:docs.rs)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:www.sea-ql.org)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(node build.js:*)"
     ]
   }
 }
