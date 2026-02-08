@@ -1,0 +1,8 @@
+{
+    "reopenAsPopup": {
+        "message": "Rouvrir la fenêtre en tant que popup"
+    },
+    "openLinkAsPopup" : {
+        "message": "Ouvrir le lien en tant que popup"
+    }
+}

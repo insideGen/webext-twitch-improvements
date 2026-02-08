@@ -1,0 +1,12 @@
+{
+    "name": "twitch-improvement",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Twitch Improvement browser extension",
+    "scripts": {
+        "build": "node build.js",
+        "build:chrome": "node build.js chrome",
+        "build:firefox": "node build.js firefox",
+        "watch": "node build.js watch"
+    }
+}
