@@ -1,6 +1,6 @@
-# Twitch Improvement
+# WebExtension - Twitch improvements
 
-Extension navigateur qui ajoute des améliorations à Twitch. Compatible Chrome et Firefox.
+Extension pour navigateur qui ajoute des améliorations à Twitch.
 
 ## Fonctionnalités
 
