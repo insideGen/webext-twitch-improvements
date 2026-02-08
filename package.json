@@ -5,12 +5,12 @@
     "description": "Twitch Improvement browser extension",
     "scripts": {
         "build": "node build.js",
-        "build:chrome": "node build.js chrome",
-        "build:firefox": "node build.js firefox",
-        "watch": "node build.js watch"
+        "watch": "node build.js watch",
+        "package": "node build.js package"
     },
     "devDependencies": {
         "@types/chrome": "^0.1.36",
+        "archiver": "^7.0.1",
         "typescript": "^5.9.3"
     }
 }

@@ -1,14 +1,17 @@
 // build.js - Zero-dependency build script for Chrome and Firefox
-// Usage: node build.js [chrome|firefox|all|watch]
+// Usage: node build.js [chrome|firefox|all|watch|package]
 // Default: all
 
 const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
+const archiver = require('archiver');
 
 const ROOT = __dirname;
 const SRC = path.join(ROOT, 'src');
 const BUILD = path.join(ROOT, 'build');
+const DIST = path.join(ROOT, 'dist');
+const VERSION = require('./package.json').version;
 
 const TARGETS = {
     chrome: 'manifest.chrome.json',
@@ -88,6 +91,59 @@ function buildTarget(target)
     console.log(`  -> ${outDir}`);
 }
 
+function packageTarget(target)
+{
+    return new Promise((resolve, reject) =>
+    {
+        const sourceDir = path.join(BUILD, target);
+
+        if (!fs.existsSync(sourceDir))
+        {
+            reject(new Error(`Build directory not found: ${sourceDir}. Run "node build.js ${target}" first.`));
+            return;
+        }
+
+        const extensions = target === 'firefox' ? ['zip', 'xpi'] : ['zip'];
+        let remaining = extensions.length;
+
+        for (const ext of extensions)
+        {
+            const fileName = `twitch-improvement-${VERSION}-${target}.${ext}`;
+            const filePath = path.join(DIST, fileName);
+
+            const output = fs.createWriteStream(filePath);
+            const archive = archiver('zip', { zlib: { level: 9 } });
+
+            output.on('close', () =>
+            {
+                const sizeKB = (archive.pointer() / 1024).toFixed(1);
+                console.log(`  -> ${filePath} (${sizeKB} KB)`);
+                if (--remaining === 0) resolve();
+            });
+
+            archive.on('error', (err) =>
+            {
+                reject(err);
+            });
+
+            archive.pipe(output);
+            archive.directory(sourceDir, false);
+            archive.finalize();
+        }
+    });
+}
+
+async function packageAll()
+{
+    console.log('Packaging...');
+    cleanDir(DIST);
+    for (const target of Object.keys(TARGETS))
+    {
+        console.log(`Packaging ${target}...`);
+        await packageTarget(target);
+    }
+}
+
 function buildAll()
 {
     compile();
@@ -125,6 +181,13 @@ switch (arg)
     case 'watch':
         watch();
         break;
+    case 'package':
+        buildAll();
+        packageAll().then(() =>
+        {
+            console.log('Done.');
+        });
+        break;
     default:
         if (TARGETS[arg])
         {
@@ -134,9 +197,9 @@ switch (arg)
         else
         {
             console.error(`Unknown target: ${arg}`);
-            console.error('Usage: node build.js [chrome|firefox|all|watch]');
+            console.error('Usage: node build.js [chrome|firefox|all|watch|package]');
             process.exit(1);
         }
 }
 
-if (arg !== 'watch') console.log('Done.');
+if (arg !== 'watch' && arg !== 'package') console.log('Done.');
